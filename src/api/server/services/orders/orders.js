@@ -185,6 +185,55 @@ class OrdersService {
 		);
 	}
 
+	getShopOrders(params) {
+		let filter = { 'items.sellerId': params.customerId };
+		const limit = parse.getNumberIfPositive(params.limit) || 1000;
+		const offset = parse.getNumberIfPositive(params.offset) || 0;
+
+		return Promise.all([
+			db
+				.collection('orders')
+				.find(filter)
+				.sort({ date_placed: -1, date_created: -1 })
+				.skip(offset)
+				.limit(limit)
+				.toArray(),
+			db.collection('orders').countDocuments(filter),
+			OrderStatusesService.getStatuses(),
+			ShippingMethodsLightService.getMethods(),
+			PaymentMethodsLightService.getMethods()
+		]).then(
+			([
+				orders,
+				ordersCount,
+				orderStatuses,
+				shippingMethods,
+				paymentMethods
+			]) => {
+				const items = orders.map(order => {
+					const sellerOrder = {
+						...order,
+						items: order.items.filter(
+							item => item.sellerId === params.customerId
+						)
+					};
+					return this.changeProperties(
+						sellerOrder,
+						orderStatuses,
+						shippingMethods,
+						paymentMethods
+					);
+				});
+				const result = {
+					total_count: ordersCount,
+					has_more: offset + items.length < ordersCount,
+					data: items
+				};
+				return result;
+			}
+		);
+	}
+
 	getSingleOrder(id) {
 		if (!ObjectID.isValid(id)) {
 			return Promise.reject('Invalid identifier');
@@ -296,7 +345,8 @@ class OrdersService {
 					id: new ObjectID(),
 					product_id: parse.getObjectIDIfValid(item.product_id),
 					variant_id: parse.getObjectIDIfValid(item.variant_id),
-					quantity: parse.getNumberIfPositive(item.quantity)
+					quantity: parse.getNumberIfPositive(item.quantity),
+					sellerId: parse.getString(item.sellerId)
 					// "sku":"",
 					// "name":"",
 					// "variant_name":"",

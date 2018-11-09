@@ -31,7 +31,7 @@ class ProductOptionsService {
 		);
 	}
 
-	deleteOption(productId, optionId) {
+	deleteOption(productId, optionId, sellerId) {
 		if (!ObjectID.isValid(productId) || !ObjectID.isValid(optionId)) {
 			return Promise.reject('Invalid identifier');
 		}
@@ -42,7 +42,8 @@ class ProductOptionsService {
 			.collection('products')
 			.updateOne(
 				{
-					_id: productObjectID
+					_id: productObjectID,
+					...(sellerId && { sellerId })
 				},
 				{
 					$pull: {
@@ -65,7 +66,13 @@ class ProductOptionsService {
 
 		return db
 			.collection('products')
-			.updateOne({ _id: productObjectID }, { $push: { options: optionData } })
+			.updateOne(
+				{
+					_id: productObjectID,
+					...(data.sellerId && { sellerId: data.sellerId })
+				},
+				{ $push: { options: optionData } }
+			)
 			.then(res => this.getOptions(productId));
 	}
 
@@ -83,7 +90,8 @@ class ProductOptionsService {
 			.updateOne(
 				{
 					_id: productObjectID,
-					'options.id': optionObjectID
+					'options.id': optionObjectID,
+					...(data.sellerId && { sellerId: data.sellerId })
 				},
 				{ $set: optionData }
 			)

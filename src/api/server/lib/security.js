@@ -14,6 +14,7 @@ const PATHS_WITH_OPEN_ACCESS = [
 
 const scope = {
 	ADMIN: 'admin',
+	USER: 'user',
 	DASHBOARD: 'dashboard',
 	READ_PRODUCTS: 'read:products',
 	WRITE_PRODUCTS: 'write:products',
@@ -43,14 +44,22 @@ const scope = {
 };
 
 const checkUserScope = (requiredScope, req, res, next) => {
-	if (DEVELOPER_MODE === true) {
-		next();
-	} else if (
+	console.log(req.params.id);
+	console.log(req.user.jti);
+	//||
+	//(req.user.scopes.includes(scope.USER) && req.parms.id === req.user.id)
+	// if (DEVELOPER_MODE === true) {
+	// 	next();
+	// } else
+
+	if (
 		req.user &&
 		req.user.scopes &&
 		req.user.scopes.length > 0 &&
 		(req.user.scopes.includes(scope.ADMIN) ||
-			req.user.scopes.includes(requiredScope))
+			req.user.scopes.includes(requiredScope) ||
+			(req.user.scopes.includes(scope.USER) &&
+				req.params.customerId === req.user.customerId))
 	) {
 		next();
 	} else {
@@ -83,14 +92,14 @@ const checkTokenInBlacklistCallback = async (req, payload, done) => {
 };
 
 const applyMiddleware = app => {
-	if (DEVELOPER_MODE === false) {
-		app.use(
-			expressJwt({
-				secret: settings.jwtSecretKey,
-				isRevoked: checkTokenInBlacklistCallback
-			}).unless({ path: PATHS_WITH_OPEN_ACCESS })
-		);
-	}
+	// if (DEVELOPER_MODE === false) {
+	app.use(
+		expressJwt({
+			secret: settings.jwtSecretKey,
+			isRevoked: checkTokenInBlacklistCallback
+		}).unless({ path: PATHS_WITH_OPEN_ACCESS })
+	);
+	// }
 };
 
 const getAccessControlAllowOrigin = () => {

@@ -2,6 +2,9 @@ import express from 'express';
 import jwt from 'jsonwebtoken';
 import CezerinClient from 'cezerin-client';
 import serverSettings from './lib/settings';
+
+import usersService from './services/users';
+import bcrypt from 'bcrypt';
 const ajaxRouter = express.Router();
 
 const TOKEN_PAYLOAD = { email: 'store', scopes: ['admin'] };
@@ -94,7 +97,7 @@ const fillCartItems = cartResponse => {
 	}
 };
 
-ajaxRouter.get('/products', (req, res, next) => {
+ajaxRouter.get('/products', async (req, res, next) => {
 	let filter = req.query;
 	filter.enabled = true;
 	api.products.list(filter).then(({ status, json }) => {
@@ -366,6 +369,68 @@ ajaxRouter.get('/payment_form_settings', (req, res, next) => {
 		});
 	} else {
 		res.end();
+	}
+});
+
+ajaxRouter.post('/signup', (req, res, next) => {
+	if (req.body.email && req.body.password) {
+		console.log('recieved everything');
+		bcrypt.hash(req.body.password, 10, (err, hashedPass) => {
+			if (err) {
+				return res.status(500).json({
+					error: err
+				});
+			} else {
+				console.log('hashed the password');
+				const user = {
+					email: req.body.email,
+					password: hashedPass
+				};
+				api.customers.create(user).then(async ({ status, json }) => {
+					console.log('created a customer');
+					const tokenData = {
+						id: json.id,
+						email: req.body.email,
+						scopes: ['user'],
+						expiration: 1000000000
+					};
+
+					const jwt = await usersService.addToken(tokenData);
+					console.log('here is the jwt: ', jwt);
+					res.status(status).send({ token: jwt });
+				});
+			}
+		});
+	}
+});
+
+ajaxRouter.post('/login', (req, res, next) => {
+	if (req.body.email && req.body.password) {
+		api.customers
+			.list({ email: req.body.email })
+			.then(async ({ status, json }) => {
+				if (!json.data.length) return res.status(500).send('hello');
+				const customer = json.data[0];
+				bcrypt.compare(req.body.password, customer.password, async function(
+					err,
+					response
+				) {
+					if (err) return res.status(500).send('hello');
+					console.log(customer);
+					const tokenData = {
+						id: customer.id,
+						email: req.body.email,
+						scopes: ['user'],
+						expiration: 1000000000
+					};
+
+					const results = await usersService.getTokens({
+						email: req.body.email
+					});
+					const jwt = await usersService.getSignedToken(results[0]);
+					res.status(status).send(jwt);
+				});
+			});
 	}
 });
 

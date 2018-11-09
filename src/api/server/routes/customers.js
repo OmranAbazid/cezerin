@@ -1,6 +1,8 @@
 import security from '../lib/security';
 import CustomersService from '../services/customers/customers';
 
+import ShopService from '../services/shops/shops';
+
 class CustomersRoute {
 	constructor(router) {
 		this.router = router;
@@ -19,44 +21,49 @@ class CustomersRoute {
 			this.addCustomer.bind(this)
 		);
 		this.router.get(
-			'/v1/customers/:id',
+			'/v1/customers/:customerId',
 			security.checkUserScope.bind(this, security.scope.READ_CUSTOMERS),
 			this.getSingleCustomer.bind(this)
 		);
 		this.router.put(
-			'/v1/customers/:id',
+			'/v1/customers/:customerId',
 			security.checkUserScope.bind(this, security.scope.WRITE_CUSTOMERS),
 			this.updateCustomer.bind(this)
 		);
 		this.router.delete(
-			'/v1/customers/:id',
+			'/v1/customers/:customerId',
 			security.checkUserScope.bind(this, security.scope.WRITE_CUSTOMERS),
 			this.deleteCustomer.bind(this)
 		);
 		this.router.post(
-			'/v1/customers/:id/addresses',
+			'/v1/customers/:customerId/addresses',
 			security.checkUserScope.bind(this, security.scope.WRITE_CUSTOMERS),
 			this.addAddress.bind(this)
 		);
 		this.router.put(
-			'/v1/customers/:id/addresses/:address_id',
+			'/v1/customers/:customerId/addresses/:address_id',
 			security.checkUserScope.bind(this, security.scope.WRITE_CUSTOMERS),
 			this.updateAddress.bind(this)
 		);
 		this.router.delete(
-			'/v1/customers/:id/addresses/:address_id',
+			'/v1/customers/:customerId/addresses/:address_id',
 			security.checkUserScope.bind(this, security.scope.WRITE_CUSTOMERS),
 			this.deleteAddress.bind(this)
 		);
 		this.router.post(
-			'/v1/customers/:id/addresses/:address_id/default_billing',
+			'/v1/customers/:customerId/addresses/:address_id/default_billing',
 			security.checkUserScope.bind(this, security.scope.WRITE_CUSTOMERS),
 			this.setDefaultBilling.bind(this)
 		);
 		this.router.post(
-			'/v1/customers/:id/addresses/:address_id/default_shipping',
+			'/v1/customers/:customerId/addresses/:address_id/default_shipping',
 			security.checkUserScope.bind(this, security.scope.WRITE_CUSTOMERS),
 			this.setDefaultShipping.bind(this)
+		);
+		this.router.post(
+			'/v1/customers/:customerId/become_seller',
+			security.checkUserScope.bind(this, security.scope.WRITE_CUSTOMERS),
+			this.becomeSeller.bind(this)
 		);
 	}
 
@@ -69,7 +76,7 @@ class CustomersRoute {
 	}
 
 	getSingleCustomer(req, res, next) {
-		CustomersService.getSingleCustomer(req.params.id)
+		CustomersService.getSingleCustomer(req.params.customerId)
 			.then(data => {
 				if (data) {
 					res.send(data);
@@ -89,7 +96,7 @@ class CustomersRoute {
 	}
 
 	updateCustomer(req, res, next) {
-		CustomersService.updateCustomer(req.params.id, req.body)
+		CustomersService.updateCustomer(req.params.customerId, req.body)
 			.then(data => {
 				if (data) {
 					res.send(data);
@@ -101,7 +108,7 @@ class CustomersRoute {
 	}
 
 	deleteCustomer(req, res, next) {
-		CustomersService.deleteCustomer(req.params.id)
+		CustomersService.deleteCustomer(req.params.customerId)
 			.then(data => {
 				res.status(data ? 200 : 404).end();
 			})
@@ -109,7 +116,7 @@ class CustomersRoute {
 	}
 
 	addAddress(req, res, next) {
-		const customer_id = req.params.id;
+		const customer_id = req.params.customerId;
 		CustomersService.addAddress(customer_id, req.body)
 			.then(data => {
 				res.end();
@@ -118,7 +125,7 @@ class CustomersRoute {
 	}
 
 	updateAddress(req, res, next) {
-		const customer_id = req.params.id;
+		const customer_id = req.params.customerId;
 		const address_id = req.params.address_id;
 		CustomersService.updateAddress(customer_id, address_id, req.body)
 			.then(data => {
@@ -128,7 +135,7 @@ class CustomersRoute {
 	}
 
 	deleteAddress(req, res, next) {
-		const customer_id = req.params.id;
+		const customer_id = req.params.customerId;
 		const address_id = req.params.address_id;
 		CustomersService.deleteAddress(customer_id, address_id)
 			.then(data => {
@@ -138,7 +145,7 @@ class CustomersRoute {
 	}
 
 	setDefaultBilling(req, res, next) {
-		const customer_id = req.params.id;
+		const customer_id = req.params.customerId;
 		const address_id = req.params.address_id;
 		CustomersService.setDefaultBilling(customer_id, address_id)
 			.then(data => {
@@ -148,11 +155,25 @@ class CustomersRoute {
 	}
 
 	setDefaultShipping(req, res, next) {
-		const customer_id = req.params.id;
+		const customer_id = req.params.customerId;
 		const address_id = req.params.address_id;
 		CustomersService.setDefaultShipping(customer_id, address_id)
 			.then(data => {
 				res.end();
+			})
+			.catch(next);
+	}
+
+	becomeSeller(req, res, next) {
+		CustomersService.updateCustomer(req.params.customerId, {
+			isSeller: true
+		})
+			.then(data => {
+				if (data) {
+					res.send(data);
+				} else {
+					res.status(404).end();
+				}
 			})
 			.catch(next);
 	}

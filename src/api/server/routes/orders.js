@@ -15,9 +15,14 @@ class OrdersRoute {
 
 	registerRoutes() {
 		this.router.get(
-			'/v1/orders',
+			'/v1/orders/:customerId?',
 			security.checkUserScope.bind(this, security.scope.READ_ORDERS),
 			this.getOrders.bind(this)
+		);
+		this.router.get(
+			'/v1/orders/:customerId?/shopOrders',
+			security.checkUserScope.bind(this, security.scope.READ_ORDERS),
+			this.getShopOrders.bind(this)
 		);
 		this.router.post(
 			'/v1/orders',
@@ -134,7 +139,23 @@ class OrdersRoute {
 	}
 
 	getOrders(req, res, next) {
-		OrdersService.getOrders(req.query)
+		const customerId = req.params.customerId;
+		OrdersService.getOrders({
+			...req.query,
+			...(customerId && { customer_id: customerId })
+		})
+			.then(data => {
+				res.send(data);
+			})
+			.catch(next);
+	}
+
+	getShopOrders(req, res, next) {
+		const customerId = req.params.customerId;
+		OrdersService.getShopOrders({
+			...req.query,
+			customerId
+		})
 			.then(data => {
 				res.send(data);
 			})

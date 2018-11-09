@@ -184,6 +184,7 @@ class CustomersService {
 			orders_count: 0
 		};
 
+		customer.password = parse.getString(data.password);
 		customer.note = parse.getString(data.note);
 		customer.email = parse.getString(data.email).toLowerCase();
 		customer.mobile = parse.getString(data.mobile).toLowerCase();
@@ -263,6 +264,18 @@ class CustomersService {
 
 		if (data.browser !== undefined) {
 			customer.browser = parse.getBrowser(data.browser);
+		}
+
+		if (data.isSeller !== undefined) {
+			customer.isSeller = parse.getBooleanIfValid(data.isSeller, false);
+		}
+
+		if (data.shopName !== undefined) {
+			customer.shopName = parse.getString(data.shopName);
+		}
+
+		if (data.shopDescription !== undefined) {
+			customer.shopDescription = parse.getString(data.shopDescription);
 		}
 
 		return customer;

@@ -355,6 +355,7 @@ class ProductsService {
 			meta_description: 1,
 			meta_title: 1,
 			name: 1,
+			sellerId: 1,
 			description: 1,
 			sku: 1,
 			code: 1,
@@ -668,9 +669,13 @@ class ProductsService {
 
 		return this.getValidDocumentForUpdate(id, data)
 			.then(dataToSet =>
-				db
-					.collection('products')
-					.updateOne({ _id: productObjectID }, { $set: dataToSet })
+				db.collection('products').updateOne(
+					{
+						_id: productObjectID,
+						...(data.sellerId && { sellerId: data.sellerId })
+					},
+					{ $set: dataToSet }
+				)
 			)
 			.then(res => (res.modifiedCount > 0 ? this.getSingleProduct(id) : null));
 	}
@@ -757,6 +762,10 @@ class ProductsService {
 
 		if (data.dimensions) {
 			product.dimensions = data.dimensions;
+		}
+
+		if (data.sellerId) {
+			product.sellerId = data.sellerId;
 		}
 
 		if (product.slug.length === 0) {

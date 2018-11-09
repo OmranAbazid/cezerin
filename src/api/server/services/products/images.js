@@ -49,7 +49,7 @@ class ProductImagesService {
 		);
 	}
 
-	deleteImage(productId, imageId) {
+	deleteImage(productId, imageId, sellerId) {
 		if (!ObjectID.isValid(productId) || !ObjectID.isValid(imageId)) {
 			return Promise.reject('Invalid identifier');
 		}
@@ -68,12 +68,13 @@ class ProductImagesService {
 							settings.productsUploadPath + '/' + productId + '/' + filename
 						);
 						fse.removeSync(filepath);
-						return db
-							.collection('products')
-							.updateOne(
-								{ _id: productObjectID },
-								{ $pull: { images: { id: imageObjectID } } }
-							);
+						return db.collection('products').updateOne(
+							{
+								_id: productObjectID,
+								...(sellerId && { sellerId })
+							},
+							{ $pull: { images: { id: imageObjectID } } }
+						);
 					} else {
 						return true;
 					}
@@ -90,6 +91,8 @@ class ProductImagesService {
 			res.status(500).send(this.getErrorMessage('Invalid identifier'));
 			return;
 		}
+
+		const sellerId = req.params.customerId;
 
 		let uploadedFiles = [];
 		const productObjectID = new ObjectID(productId);
@@ -121,7 +124,8 @@ class ProductImagesService {
 
 					await db.collection('products').updateOne(
 						{
-							_id: productObjectID
+							_id: productObjectID,
+							...(sellerId && { sellerId })
 						},
 						{
 							$push: { images: imageData }
@@ -151,7 +155,8 @@ class ProductImagesService {
 		return db.collection('products').updateOne(
 			{
 				_id: productObjectID,
-				'images.id': imageObjectID
+				'images.id': imageObjectID,
+				...(data.sellerId && { sellerId: data.sellerId })
 			},
 			{ $set: imageData }
 		);

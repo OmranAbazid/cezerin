@@ -155,6 +155,10 @@ class SecurityTokensService {
 				date_created: new Date()
 			};
 
+			if (data.id) {
+				token.customerId = data.id;
+			}
+
 			token.name = parse.getString(data.name);
 			if (email && email.length > 0) {
 				token.email = email.toLowerCase();
@@ -204,6 +208,10 @@ class SecurityTokensService {
 				scopes: token.scopes,
 				jti: token.id
 			};
+
+			if (token.customerId) {
+				payload.customerId = token.customerId;
+			}
 
 			if (token.email && token.email.length > 0) {
 				payload.email = token.email.toLowerCase();

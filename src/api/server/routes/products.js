@@ -18,7 +18,7 @@ class ProductsRoute {
 			this.getProducts.bind(this)
 		);
 		this.router.post(
-			'/v1/products',
+			'/v1/products/:customerId?',
 			security.checkUserScope.bind(this, security.scope.WRITE_PRODUCTS),
 			this.addProduct.bind(this)
 		);
@@ -28,33 +28,32 @@ class ProductsRoute {
 			this.getSingleProduct.bind(this)
 		);
 		this.router.put(
-			'/v1/products/:productId',
+			'/v1/products/:productId/:customerId?',
 			security.checkUserScope.bind(this, security.scope.WRITE_PRODUCTS),
 			this.updateProduct.bind(this)
 		);
 		this.router.delete(
-			'/v1/products/:productId',
+			'/v1/products/:productId/:customerId?',
 			security.checkUserScope.bind(this, security.scope.WRITE_PRODUCTS),
 			this.deleteProduct.bind(this)
 		);
-
 		this.router.get(
 			'/v1/products/:productId/images',
 			security.checkUserScope.bind(this, security.scope.READ_PRODUCTS),
 			this.getImages.bind(this)
 		);
 		this.router.post(
-			'/v1/products/:productId/images',
+			'/v1/products/:productId/images/:customerId?',
 			security.checkUserScope.bind(this, security.scope.WRITE_PRODUCTS),
 			this.addImage.bind(this)
 		);
 		this.router.put(
-			'/v1/products/:productId/images/:imageId',
+			'/v1/products/:productId/images/:imageId/:customerId?',
 			security.checkUserScope.bind(this, security.scope.WRITE_PRODUCTS),
 			this.updateImage.bind(this)
 		);
 		this.router.delete(
-			'/v1/products/:productId/images/:imageId',
+			'/v1/products/:productId/images/:imageId/:customerId?',
 			security.checkUserScope.bind(this, security.scope.WRITE_PRODUCTS),
 			this.deleteImage.bind(this)
 		);
@@ -81,17 +80,17 @@ class ProductsRoute {
 			this.getSingleOption.bind(this)
 		);
 		this.router.post(
-			'/v1/products/:productId/options',
+			'/v1/products/:productId/options/:customerId?',
 			security.checkUserScope.bind(this, security.scope.WRITE_PRODUCTS),
 			this.addOption.bind(this)
 		);
 		this.router.put(
-			'/v1/products/:productId/options/:optionId',
+			'/v1/products/:productId/options/:optionId/:customerId?',
 			security.checkUserScope.bind(this, security.scope.WRITE_PRODUCTS),
 			this.updateOption.bind(this)
 		);
 		this.router.delete(
-			'/v1/products/:productId/options/:optionId',
+			'/v1/products/:productId/options/:optionId/customerId?',
 			security.checkUserScope.bind(this, security.scope.WRITE_PRODUCTS),
 			this.deleteOption.bind(this)
 		);
@@ -107,17 +106,17 @@ class ProductsRoute {
 			this.getSingleOptionValue.bind(this)
 		);
 		this.router.post(
-			'/v1/products/:productId/options/:optionId/values',
+			'/v1/products/:productId/options/:optionId/values/:customerId?',
 			security.checkUserScope.bind(this, security.scope.WRITE_PRODUCTS),
 			this.addOptionValue.bind(this)
 		);
 		this.router.put(
-			'/v1/products/:productId/options/:optionId/values/:valueId',
+			'/v1/products/:productId/options/:optionId/values/:valueId/:customerId?',
 			security.checkUserScope.bind(this, security.scope.WRITE_PRODUCTS),
 			this.updateOptionValue.bind(this)
 		);
 		this.router.delete(
-			'/v1/products/:productId/options/:optionId/values/:valueId',
+			'/v1/products/:productId/options/:optionId/values/:valueId/:customerId?',
 			security.checkUserScope.bind(this, security.scope.WRITE_PRODUCTS),
 			this.deleteOptionValue.bind(this)
 		);
@@ -128,22 +127,22 @@ class ProductsRoute {
 			this.getVariants.bind(this)
 		);
 		this.router.post(
-			'/v1/products/:productId/variants',
+			'/v1/products/:productId/variants/:customerId?',
 			security.checkUserScope.bind(this, security.scope.WRITE_PRODUCTS),
 			this.addVariant.bind(this)
 		);
 		this.router.put(
-			'/v1/products/:productId/variants/:variantId',
+			'/v1/products/:productId/variants/:variantId/:customerId?',
 			security.checkUserScope.bind(this, security.scope.WRITE_PRODUCTS),
 			this.updateVariant.bind(this)
 		);
 		this.router.delete(
-			'/v1/products/:productId/variants/:variantId',
+			'/v1/products/:productId/variants/:variantId/:customerId?',
 			security.checkUserScope.bind(this, security.scope.WRITE_PRODUCTS),
 			this.deleteVariant.bind(this)
 		);
 		this.router.put(
-			'/v1/products/:productId/variants/:variantId/options',
+			'/v1/products/:productId/variants/:variantId/options/:customerId?',
 			security.checkUserScope.bind(this, security.scope.WRITE_PRODUCTS),
 			this.setVariantOption.bind(this)
 		);
@@ -170,7 +169,8 @@ class ProductsRoute {
 	}
 
 	addProduct(req, res, next) {
-		ProductsService.addProduct(req.body)
+		const sellerId = req.params.customerId;
+		ProductsService.addProduct({ ...req.body, ...(sellerId && { sellerId }) })
 			.then(data => {
 				res.send(data);
 			})
@@ -178,7 +178,11 @@ class ProductsRoute {
 	}
 
 	updateProduct(req, res, next) {
-		ProductsService.updateProduct(req.params.productId, req.body)
+		const sellerId = req.params.customerId;
+		ProductsService.updateProduct(req.params.productId, {
+			...req.body,
+			...(sellerId && { sellerId })
+		})
 			.then(data => {
 				if (data) {
 					res.send(data);
@@ -190,7 +194,7 @@ class ProductsRoute {
 	}
 
 	deleteProduct(req, res, next) {
-		ProductsService.deleteProduct(req.params.productId)
+		ProductsService.deleteProduct(req.params.productId, req.params.customerId)
 			.then(data => {
 				res.status(data ? 200 : 404).end();
 			})
@@ -210,11 +214,11 @@ class ProductsRoute {
 	}
 
 	updateImage(req, res, next) {
-		ProductImagesService.updateImage(
-			req.params.productId,
-			req.params.imageId,
-			req.body
-		).then(data => {
+		const sellerId = req.params.customerId;
+		ProductImagesService.updateImage(req.params.productId, req.params.imageId, {
+			...req.body,
+			...(sellerId && { sellerId })
+		}).then(data => {
 			res.end();
 		});
 	}
@@ -222,7 +226,8 @@ class ProductsRoute {
 	deleteImage(req, res, next) {
 		ProductImagesService.deleteImage(
 			req.params.productId,
-			req.params.imageId
+			req.params.imageId,
+			req.params.customerId
 		).then(data => {
 			res.end();
 		});
@@ -268,7 +273,11 @@ class ProductsRoute {
 	}
 
 	addOption(req, res, next) {
-		ProductOptionsService.addOption(req.params.productId, req.body)
+		const sellerId = req.params.customerId;
+		ProductOptionsService.addOption(req.params.productId, {
+			...req.body,
+			...(sellerId && { sellerId })
+		})
 			.then(data => {
 				res.send(data);
 			})
@@ -276,10 +285,14 @@ class ProductsRoute {
 	}
 
 	updateOption(req, res, next) {
+		const sellerId = req.params.customerId;
 		ProductOptionsService.updateOption(
 			req.params.productId,
 			req.params.optionId,
-			req.body
+			{
+				...req.body,
+				...(sellerId && { sellerId })
+			}
 		)
 			.then(data => {
 				res.send(data);
@@ -290,7 +303,8 @@ class ProductsRoute {
 	deleteOption(req, res, next) {
 		ProductOptionsService.deleteOption(
 			req.params.productId,
-			req.params.optionId
+			req.params.optionId,
+			req.params.customerId
 		)
 			.then(data => {
 				res.send(data);
@@ -326,10 +340,14 @@ class ProductsRoute {
 	}
 
 	addOptionValue(req, res, next) {
+		const sellerId = req.params.customerId;
 		ProductOptionValuesService.addOptionValue(
 			req.params.productId,
 			req.params.optionId,
-			req.body
+			{
+				...req.body,
+				...(sellerId && { sellerId })
+			}
 		)
 			.then(data => {
 				res.send(data);
@@ -338,11 +356,15 @@ class ProductsRoute {
 	}
 
 	updateOptionValue(req, res, next) {
+		const sellerId = req.params.customerId;
 		ProductOptionValuesService.updateOptionValue(
 			req.params.productId,
 			req.params.optionId,
 			req.params.valueId,
-			req.body
+			{
+				...req.body,
+				...(sellerId && { sellerId })
+			}
 		)
 			.then(data => {
 				res.send(data);
@@ -354,7 +376,8 @@ class ProductsRoute {
 		ProductOptionValuesService.deleteOptionValue(
 			req.params.productId,
 			req.params.optionId,
-			req.params.valueId
+			req.params.valueId,
+			req.params.customerId
 		)
 			.then(data => {
 				res.send(data);
@@ -371,7 +394,11 @@ class ProductsRoute {
 	}
 
 	addVariant(req, res, next) {
-		ProductVariantsService.addVariant(req.params.productId, req.body)
+		const sellerId = req.params.customerId;
+		ProductVariantsService.addVariant(req.params.productId, {
+			...req.body,
+			...(sellerId && { sellerId })
+		})
 			.then(data => {
 				res.send(data);
 			})
@@ -379,10 +406,14 @@ class ProductsRoute {
 	}
 
 	updateVariant(req, res, next) {
+		const sellerId = req.params.customerId;
 		ProductVariantsService.updateVariant(
 			req.params.productId,
 			req.params.variantId,
-			req.body
+			{
+				...req.body,
+				...(sellerId && { sellerId })
+			}
 		)
 			.then(data => {
 				res.send(data);
@@ -393,7 +424,8 @@ class ProductsRoute {
 	deleteVariant(req, res, next) {
 		ProductVariantsService.deleteVariant(
 			req.params.productId,
-			req.params.variantId
+			req.params.variantId,
+			req.params.customerId
 		)
 			.then(data => {
 				res.send(data);
@@ -402,10 +434,14 @@ class ProductsRoute {
 	}
 
 	setVariantOption(req, res, next) {
+		const sellerId = req.params.customerId;
 		ProductVariantsService.setVariantOption(
 			req.params.productId,
 			req.params.variantId,
-			req.body
+			{
+				...req.body,
+				...(sellerId && { sellerId })
+			}
 		)
 			.then(data => {
 				res.send(data);

@@ -43,7 +43,8 @@ class ProductOptionValuesService {
 			.updateOne(
 				{
 					_id: productObjectID,
-					'options.id': optionObjectID
+					'options.id': optionObjectID,
+					...(data.sellerId && { sellerId: data.sellerId })
 				},
 				{ $push: { 'options.$.values': optionValueData } }
 			)
@@ -67,7 +68,12 @@ class ProductOptionValuesService {
 				data.name
 			)
 				.then(values =>
-					this.overwriteAllValuesForOption(productId, optionId, values)
+					this.overwriteAllValuesForOption(
+						productId,
+						optionId,
+						values,
+						data.sellerId
+					)
 				)
 				.then(updateResult => this.getOptionValues(productId, optionId));
 		} else {
@@ -75,7 +81,7 @@ class ProductOptionValuesService {
 		}
 	}
 
-	deleteOptionValue(productId, optionId, valueId) {
+	deleteOptionValue(productId, optionId, valueId, sellerId) {
 		if (
 			!ObjectID.isValid(productId) ||
 			!ObjectID.isValid(optionId) ||
@@ -86,7 +92,7 @@ class ProductOptionValuesService {
 
 		return this.getOptionValuesWithDeletedOne(productId, optionId, valueId)
 			.then(values =>
-				this.overwriteAllValuesForOption(productId, optionId, values)
+				this.overwriteAllValuesForOption(productId, optionId, values, sellerId)
 			)
 			.then(updateResult => this.getOptionValues(productId, optionId));
 	}
@@ -118,7 +124,7 @@ class ProductOptionValuesService {
 		});
 	}
 
-	overwriteAllValuesForOption(productId, optionId, values) {
+	overwriteAllValuesForOption(productId, optionId, values, sellerId) {
 		let productObjectID = new ObjectID(productId);
 		let optionObjectID = new ObjectID(optionId);
 
@@ -126,12 +132,14 @@ class ProductOptionValuesService {
 			return;
 		}
 
-		return db
-			.collection('products')
-			.updateOne(
-				{ _id: productObjectID, 'options.id': optionObjectID },
-				{ $set: { 'options.$.values': values } }
-			);
+		return db.collection('products').updateOne(
+			{
+				_id: productObjectID,
+				'options.id': optionObjectID,
+				...(sellerId && { sellerId })
+			},
+			{ $set: { 'options.$.values': values } }
+		);
 	}
 
 	getValidDocumentForInsert(data) {

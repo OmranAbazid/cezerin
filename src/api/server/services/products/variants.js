@@ -17,7 +17,7 @@ class ProductVariantsService {
 			.then(product => product.variants || []);
 	}
 
-	deleteVariant(productId, variantId) {
+	deleteVariant(productId, variantId, sellerId) {
 		if (!ObjectID.isValid(productId) || !ObjectID.isValid(variantId)) {
 			return Promise.reject('Invalid identifier');
 		}
@@ -28,7 +28,8 @@ class ProductVariantsService {
 			.collection('products')
 			.updateOne(
 				{
-					_id: productObjectID
+					_id: productObjectID,
+					...(sellerId && { sellerId })
 				},
 				{
 					$pull: {
@@ -51,7 +52,13 @@ class ProductVariantsService {
 
 		return db
 			.collection('products')
-			.updateOne({ _id: productObjectID }, { $push: { variants: variantData } })
+			.updateOne(
+				{
+					_id: productObjectID,
+					...(data.sellerId && { sellerId: data.sellerId })
+				},
+				{ $push: { variants: variantData } }
+			)
 			.then(res => this.getVariants(productId));
 	}
 
@@ -69,7 +76,8 @@ class ProductVariantsService {
 			.updateOne(
 				{
 					_id: productObjectID,
-					'variants.id': variantObjectID
+					'variants.id': variantObjectID,
+					...(data.sellerId && { sellerId: data.sellerId })
 				},
 				{ $set: variantData }
 			)
@@ -197,12 +205,14 @@ class ProductVariantsService {
 			data.value_id
 		)
 			.then(options =>
-				db
-					.collection('products')
-					.updateOne(
-						{ _id: productObjectID, 'variants.id': variantObjectID },
-						{ $set: { 'variants.$.options': options } }
-					)
+				db.collection('products').updateOne(
+					{
+						_id: productObjectID,
+						'variants.id': variantObjectID,
+						...(data.sellerId && { sellerId: data.sellerId })
+					},
+					{ $set: { 'variants.$.options': options } }
+				)
 			)
 			.then(res => this.getVariants(productId));
 	}
