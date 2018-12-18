@@ -513,7 +513,8 @@ class ProductsService {
 			price_to,
 			sku,
 			ids,
-			tags
+			tags,
+			sellerId
 		} = params;
 
 		// parse values
@@ -524,6 +525,7 @@ class ProductsService {
 		price_from = parse.getNumberIfPositive(price_from);
 		price_to = parse.getNumberIfPositive(price_to);
 		ids = parse.getString(ids);
+		sellerId = ObjectID.isValid(sellerId) ? sellerId : null;
 		tags = parse.getString(tags);
 
 		let queries = [];
@@ -596,6 +598,14 @@ class ProductsService {
 			}
 			queries.push({
 				id: { $in: objectIDs }
+			});
+		}
+
+		console.log('sellerID', sellerId);
+
+		if (sellerId) {
+			queries.push({
+				sellerId
 			});
 		}
 

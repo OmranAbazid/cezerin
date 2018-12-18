@@ -428,10 +428,20 @@ ajaxRouter.post('/login', (req, res, next) => {
 						email: req.body.email
 					});
 					const jwt = await usersService.getSignedToken(results[0]);
-					res.status(status).send(jwt);
+					res.status(status).send({ id_token: jwt, id: customer.id });
 				});
 			});
 	}
+});
+
+ajaxRouter.get('/stores/:storeId', async (req, res, next) => {
+	const { status, json } = await api.customers.retrieve(req.params.storeId);
+	if (json.isSeller)
+		res.status(status).send({
+			full_name: json.full_name,
+			mobile: json.mobile
+		});
+	else res.status(404);
 });
 
 export default ajaxRouter;
