@@ -48,7 +48,7 @@
 		"lint:fix": "eslint . --fix",
 		"prettier": "prettier --write \"src/**/*.js\" \"theme/**/*.js\"",
 		"precommit": "lint-staged",
-		"start-api": "nodemon -r esm src/api/server/index.js",
+		"start-api": "node -r esm src/api/server/index.js",
 		"start-store": "node -r esm dist/store/server/index.js",
 		"start": "concurrently npm:start-*"
 	},

@@ -434,6 +434,15 @@ ajaxRouter.post('/login', (req, res, next) => {
 	}
 });
 
+ajaxRouter.get('/stores', async (req, res, next) => {
+	const { status, json } = await api.customers.list({ isSeller: true });
+	if (json)
+		res
+			.status(status)
+			.send(json.data.map(el => ({ name: el.full_name, id: el.id })));
+	else res.status(404);
+});
+
 ajaxRouter.get('/stores/:storeId', async (req, res, next) => {
 	const { status, json } = await api.customers.retrieve(req.params.storeId);
 	if (json.isSeller)
