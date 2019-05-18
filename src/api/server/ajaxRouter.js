@@ -121,14 +121,16 @@ ajaxRouter.get('/cart', (req, res, next) => {
 	const order_id = req.signedCookies.order_id;
 	if (order_id) {
 		api.orders
-			.retrieve(order_id)
+			.retrieve({ order_id })
 			.then(cartResponse => fillCartItems(cartResponse))
 			.then(({ status, json }) => {
 				json.browser = undefined;
 				res.status(status).send(json);
 			});
 	} else {
-		res.end();
+		res.send({
+			data: []
+		});
 	}
 });
 
@@ -374,15 +376,14 @@ ajaxRouter.get('/payment_form_settings', (req, res, next) => {
 
 ajaxRouter.post('/signup', (req, res, next) => {
 	if (req.body.email && req.body.password) {
-		console.log('recieved everything');
 		bcrypt.hash(req.body.password, 10, (err, hashedPass) => {
 			if (err) {
 				return res.status(500).json({
 					error: err
 				});
 			} else {
-				console.log('hashed the password');
 				const user = {
+					full_name: req.body.full_name,
 					email: req.body.email,
 					password: hashedPass
 				};
@@ -396,8 +397,7 @@ ajaxRouter.post('/signup', (req, res, next) => {
 					};
 
 					const jwt = await usersService.addToken(tokenData);
-					console.log('here is the jwt: ', jwt);
-					res.status(status).send({ token: jwt });
+					res.status(status).send({ id_token: jwt.token, id: json.id });
 				});
 			}
 		});

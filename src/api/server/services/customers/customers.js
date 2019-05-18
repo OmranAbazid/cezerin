@@ -34,6 +34,10 @@ class CustomersService {
 			filter.email = params.email.toLowerCase();
 		}
 
+		if (params.isSeller) {
+			filter.isSeller = !!params.isSeller;
+		}
+
 		if (params.search) {
 			filter['$or'] = [
 				{ email: new RegExp(params.search, 'i') },

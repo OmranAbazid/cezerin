@@ -45,8 +45,8 @@ const scope = {
 };
 
 const checkUserScope = (requiredScope, req, res, next) => {
-	console.log(req.params.id);
-	console.log(req.user.jti);
+	// console.log(req.params.id);
+	// console.log(req.user.jti);
 	//||
 	//(req.user.scopes.includes(scope.USER) && req.parms.id === req.user.id)
 	// if (DEVELOPER_MODE === true) {

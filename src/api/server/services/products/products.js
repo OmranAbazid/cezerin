@@ -601,8 +601,6 @@ class ProductsService {
 			});
 		}
 
-		console.log('sellerID', sellerId);
-
 		if (sellerId) {
 			queries.push({
 				sellerId
