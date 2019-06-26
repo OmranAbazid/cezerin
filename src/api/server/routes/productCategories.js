@@ -17,7 +17,7 @@ class ProductCategoriesRoute {
 			this.getCategories.bind(this)
 		);
 		this.router.post(
-			'/v1/product_categories',
+			'/v1/product_categories/:customerId?',
 			security.checkUserScope.bind(
 				this,
 				security.scope.WRITE_PRODUCT_CATEGORIES
@@ -25,7 +25,7 @@ class ProductCategoriesRoute {
 			this.addCategory.bind(this)
 		);
 		this.router.get(
-			'/v1/product_categories/:id',
+			'/v1/product_categories/:id/:customerId?',
 			security.checkUserScope.bind(
 				this,
 				security.scope.READ_PRODUCT_CATEGORIES
@@ -33,7 +33,7 @@ class ProductCategoriesRoute {
 			this.getSingleCategory.bind(this)
 		);
 		this.router.put(
-			'/v1/product_categories/:id',
+			'/v1/product_categories/:id/:customerId?',
 			security.checkUserScope.bind(
 				this,
 				security.scope.WRITE_PRODUCT_CATEGORIES
@@ -41,7 +41,7 @@ class ProductCategoriesRoute {
 			this.updateCategory.bind(this)
 		);
 		this.router.delete(
-			'/v1/product_categories/:id',
+			'/v1/product_categories/:id/:customerId?',
 			security.checkUserScope.bind(
 				this,
 				security.scope.WRITE_PRODUCT_CATEGORIES
@@ -49,7 +49,7 @@ class ProductCategoriesRoute {
 			this.deleteCategory.bind(this)
 		);
 		this.router.post(
-			'/v1/product_categories/:id/image',
+			'/v1/product_categories/:id/image/:customerId?',
 			security.checkUserScope.bind(
 				this,
 				security.scope.WRITE_PRODUCT_CATEGORIES
@@ -57,7 +57,7 @@ class ProductCategoriesRoute {
 			this.uploadCategoryImage.bind(this)
 		);
 		this.router.delete(
-			'/v1/product_categories/:id/image',
+			'/v1/product_categories/:id/image/:customerId?',
 			security.checkUserScope.bind(
 				this,
 				security.scope.WRITE_PRODUCT_CATEGORIES

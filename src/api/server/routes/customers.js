@@ -65,6 +65,17 @@ class CustomersRoute {
 			security.checkUserScope.bind(this, security.scope.WRITE_CUSTOMERS),
 			this.becomeSeller.bind(this)
 		);
+
+		this.router.post(
+			'/v1/customers/:customerId/categories',
+			security.checkUserScope.bind(this, security.scope.WRITE_CUSTOMERS),
+			this.addCategory.bind(this)
+		);
+		this.router.delete(
+			'/v1/customers/:customerId/categories/:categoryId',
+			security.checkUserScope.bind(this, security.scope.WRITE_CUSTOMERS),
+			this.removeCategory.bind(this)
+		);
 	}
 
 	getCustomers(req, res, next) {
@@ -168,6 +179,33 @@ class CustomersRoute {
 		CustomersService.updateCustomer(req.params.customerId, {
 			isSeller: true
 		})
+			.then(data => {
+				if (data) {
+					res.send(data);
+				} else {
+					res.status(404).end();
+				}
+			})
+			.catch(next);
+	}
+
+	addCategory(req, res, next) {
+		CustomersService.addCategory(req.params.customerId, req.body.categoryId)
+			.then(data => {
+				if (data) {
+					res.send(data);
+				} else {
+					res.status(404).end();
+				}
+			})
+			.catch(next);
+	}
+
+	removeCategory(req, res, next) {
+		CustomersService.removeCategory(
+			req.params.customerId,
+			req.params.categoryId
+		)
 			.then(data => {
 				if (data) {
 					res.send(data);

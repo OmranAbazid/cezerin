@@ -201,6 +201,8 @@ class CustomersService {
 		customer.birthdate = parse.getDateIfValid(data.birthdate);
 		customer.addresses = this.validateAddresses(data.addresses);
 		customer.browser = parse.getBrowser(data.browser);
+		customer.storeCategories =
+			parse.getArrayIfValid(data.storeCategories) || [];
 
 		return customer;
 	}
@@ -274,6 +276,10 @@ class CustomersService {
 			customer.isSeller = parse.getBooleanIfValid(data.isSeller, false);
 		}
 
+		if (data.storeCategories !== undefined) {
+			customer.storeCategories = parse.getArrayIfValid(data.storeCategories);
+		}
+
 		if (data.shopName !== undefined) {
 			customer.shopName = parse.getString(data.shopName);
 		}
@@ -337,6 +343,25 @@ class CustomersService {
 			{
 				$push: {
 					addresses: validAddress
+				}
+			}
+		);
+	}
+
+	addCategory(customerId, categoryId) {
+		if (!ObjectID.isValid(customerId)) {
+			return Promise.reject('Invalid identifier');
+		}
+		const customerObjectID = new ObjectID(customerId);
+		const validCategory = parse.getString(categoryId);
+
+		return db.collection('customers').updateOne(
+			{
+				_id: customerObjectID
+			},
+			{
+				$push: {
+					storeCategories: validCategory
 				}
 			}
 		);
@@ -445,6 +470,25 @@ class CustomersService {
 					addresses: {
 						id: addressObjectID
 					}
+				}
+			}
+		);
+	}
+
+	removeCategory(customerId, category) {
+		if (!ObjectID.isValid(customerId)) {
+			return Promise.reject('Invalid identifier');
+		}
+		const customerObjectID = new ObjectID(customerId);
+		const validCategory = parse.getString(category);
+
+		return db.collection('customers').updateOne(
+			{
+				_id: customerObjectID
+			},
+			{
+				$pull: {
+					storeCategories: validCategory
 				}
 			}
 		);

@@ -448,8 +448,17 @@ ajaxRouter.get('/stores/:storeId', async (req, res, next) => {
 	if (json.isSeller)
 		res.status(status).send({
 			full_name: json.full_name,
-			mobile: json.mobile
+			mobile: json.mobile,
+			storeCategories: json.storeCategories
 		});
+	else res.status(404);
+});
+
+ajaxRouter.get('/categories/:categoryId', async (req, res, next) => {
+	const { status, json } = await api.productCategories.retrieve(
+		req.params.categoryId
+	);
+	if (json) res.status(status).send(json);
 	else res.status(404);
 });
 
